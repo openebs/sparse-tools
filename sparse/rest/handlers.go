@@ -9,9 +9,17 @@ import (
 	"os"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/openebs/sparse-tools/sparse"
+	log "github.com/sirupsen/logrus"
 )
+
+type SyncFileOperations interface {
+	UpdateSyncFileProgress(size int64)
+}
+
+type SyncFileStub struct{}
+
+func (f *SyncFileStub) UpdateSyncFileProgress(size int64) {}
 
 func (server *SyncServer) getQueryInterval(request *http.Request) (sparse.Interval, error) {
 	var interval sparse.Interval
@@ -36,7 +44,7 @@ func (server *SyncServer) getQueryInterval(request *http.Request) (sparse.Interv
 		return interval, err
 	}
 
-	return sparse.Interval{begin, end}, err
+	return sparse.Interval{Begin: begin, End: end}, err
 }
 
 func (server *SyncServer) open(writer http.ResponseWriter, request *http.Request) {
@@ -87,8 +95,9 @@ func (server *SyncServer) close(writer http.ResponseWriter, request *http.Reques
 	}
 
 	server.fileIo.Close()
-	log.Infof("Ssync server exit(0)")
-	os.Exit(0)
+	log.Infof("Closing ssync server")
+
+	server.srv.Close()
 }
 
 func (server *SyncServer) sendHole(writer http.ResponseWriter, request *http.Request) {
@@ -177,6 +186,7 @@ func (server *SyncServer) doWriteData(request *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("WriteDataInterval to file error: %s", err)
 	}
+	server.syncFileOps.UpdateSyncFileProgress(remoteDataInterval.Len())
 
 	return nil
 }

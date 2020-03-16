@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/openebs/sparse-tools/sparse"
 )
+
+type FoldFileStub struct{}
+
+func (f *FoldFileStub) UpdateFoldFileProgress(progress int, done bool, err error) {}
 
 func Main() {
 	defaultNonVerboseLogLevel := log.DebugLevel // set if -verbose is false
@@ -44,7 +49,8 @@ Examples:
 		log.SetLevel(defaultNonVerboseLogLevel)
 	}
 
-	err := sparse.FoldFile(srcPath, dstPath)
+	ops := &FoldFileStub{}
+	err := sparse.FoldFile(srcPath, dstPath, ops)
 	if err != nil {
 		log.Errorf("failed to fold file: %s to: %s, err: %v", srcPath, dstPath, err)
 		os.Exit(1)

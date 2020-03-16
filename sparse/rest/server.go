@@ -3,22 +3,34 @@ package rest
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/openebs/sparse-tools/sparse"
+	log "github.com/sirupsen/logrus"
 )
 
 type SyncServer struct {
-	filePath string
-	fileIo   sparse.FileIoProcessor
+	filePath    string
+	fileIo      sparse.FileIoProcessor
+	syncFileOps SyncFileOperations
+
+	srv *http.Server
 }
 
 // TestServer daemon serves only one connection for each test then exits
 func TestServer(port string, filePath string, timeout int) {
-	Server("", port, filePath)
+	Server(port, filePath, &SyncFileStub{})
 }
 
-func Server(hostIP string, port string, filePath string) error {
+func Server(port string, filePath string, syncFileOps SyncFileOperations) error {
 	log.Infof("Creating Ssync service")
-	router := NewRouter(&SyncServer{filePath: filePath})
-	return http.ListenAndServe(hostIP+":"+port, router)
+	srv := &http.Server{
+		Addr: ":" + port,
+	}
+	syncServer := &SyncServer{
+		filePath:    filePath,
+		syncFileOps: syncFileOps,
+		srv:         srv,
+	}
+	srv.Handler = NewRouter(syncServer)
+
+	return srv.ListenAndServe()
 }

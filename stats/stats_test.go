@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func tempFilePath() string {
@@ -296,7 +296,7 @@ func Benchmark_C100Flush(b *testing.B) {
 	log.SetLevel(log.DebugLevel)
 	go func() {
 		ticks := time.Tick(time.Millisecond)
-		for _ = range ticks {
+		for range ticks {
 			PrintLimited(10)
 		}
 	}()

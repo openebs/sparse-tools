@@ -9,8 +9,8 @@ import (
 
 	"io/ioutil"
 
-	log "github.com/Sirupsen/logrus"
 	. "github.com/openebs/sparse-tools/sparse"
+	log "github.com/sirupsen/logrus"
 )
 
 func tempFilePathDirectIo() string {
