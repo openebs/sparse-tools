@@ -65,7 +65,9 @@ func (server *SyncServer) encodeToFile(request *http.Request) error {
 		return fmt.Errorf("Failed to read request, err: %v", err)
 	}
 
-	f, err := os.Create(server.filePath + ".tmp")
+	// Metadata files need to be opened in O_SYNC mode so that it is immediately synced to disk,
+	// if the kernel crashes, the data in these files might be lost.
+	f, err := os.OpenFile(server.filePath+".tmp", os.O_RDWR|os.O_CREATE|os.O_TRUNC|os.O_SYNC, 0666)
 	if err != nil {
 		log.Errorf("failed to create temp file: %s while encoding the data to file", server.filePath)
 		return err
